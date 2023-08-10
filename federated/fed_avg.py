@@ -20,9 +20,9 @@ class FedAvg:
 
         self.device = self._acquire_device()
         self.data_path, self.log_path, self.result_path = self._make_dirs()
-        local_train_dataloaders, test_dataloader = self._create_mnist_dataloader()
         self.writer = SummaryWriter(log_dir=self.log_path)
 
+        local_train_dataloaders, test_dataloader = self._create_mnist_dataloader()
         self.server = Server(self.args, test_dataloader, self.device)
         self.clients = [
             Client(self.args, k, local_train_dataloaders[k], self.device) for k in range(self.args.num_clients)
@@ -82,11 +82,13 @@ class FedAvg:
             images = np.concatenate(images, axis=0)
             labels = np.concatenate(labels, axis=0)
             local_train_dataset = MnistDataset(client_id, images, labels)
-            local_train_dataloader = DataLoader(local_train_dataset, batch_size=self.args.batch_size, shuffle=True)
+            local_train_dataloader = DataLoader(
+                local_train_dataset, batch_size=self.args.batch_size, shuffle=True, drop_last=False
+            )
             local_train_dataloaders.append(local_train_dataloader)
 
         test_dataset = MnistDataset(-1, test_image, test_label)
-        test_dataloader = DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False)
+        test_dataloader = DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, drop_last=False)
 
         return local_train_dataloaders, test_dataloader
 
@@ -96,7 +98,6 @@ class FedAvg:
 
         n_sample = max(int(self.args.fraction * self.args.num_clients), 1)
         sample_set = np.random.randint(0, self.args.num_clients, n_sample)
-
         sample_clients = []
         for k in sample_set:
             self.clients[k].local_update()
@@ -123,6 +124,6 @@ class FedAvg:
             self.writer.add_scalar('train/test_acc', test_acc, t)
 
             result.loc[len(result)] = [t, test_loss, test_acc]
+            result.to_csv(self.result_path + '/result.csv', index=False)
 
         self.writer.close()
-        result.to_csv(self.result_path + '/result.csv', index=False)

@@ -7,6 +7,7 @@ class MnistDataset(Dataset):
         self.client_id = client_id
         self.images = images
         self.labels = labels.astype(int)
+
         self.transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
     def __getitem__(self, index):

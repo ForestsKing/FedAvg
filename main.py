@@ -14,7 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default='./checkpoints/')
     parser.add_argument('--download', type=bool, default=False, help='download mnist')
 
-    parser.add_argument('--comm_round', type=int, default=100)
+    parser.add_argument('--comm_round', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--shard_size', type=int, default=300)
     parser.add_argument('--num_clients', type=int, default=100, help='K')
